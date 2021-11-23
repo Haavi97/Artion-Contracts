@@ -8,14 +8,14 @@ async function main(network) {
     const [deployer] = await ethers.getSigners();
     const deployerAddress = await deployer.getAddress();
     console.log(`Deployer's address: `, deployerAddress);
-  
+
     const { TREASURY_ADDRESS, PLATFORM_FEE, WRAPPED_FTM_MAINNET, WRAPPED_FTM_TESTNET } = require('../constants');
-  
+
     ////////////
     const Artion = await ethers.getContractFactory('Artion');
     const artion = await Artion.deploy(TREASURY_ADDRESS, '2000000000000000000');
-  
-    await artion.deployed();  
+
+    await artion.deployed();
     console.log('FantomArtion deployed at', artion.address);
     ///////////
 
@@ -37,43 +37,41 @@ async function main(network) {
     await marketplaceImpl.deployed();
 
     console.log('FantomMarketplace deployed to:', marketplaceImpl.address);
-    
+
     const marketplaceProxy = await AdminUpgradeabilityProxyFactory.deploy(
         marketplaceImpl.address,
-        PROXY_ADDRESS,
-        []
+        PROXY_ADDRESS, []
     );
     await marketplaceProxy.deployed();
     console.log('Marketplace Proxy deployed at ', marketplaceProxy.address);
     const MARKETPLACE_PROXY_ADDRESS = marketplaceProxy.address;
     const marketplace = await ethers.getContractAt('FantomMarketplace', marketplaceProxy.address);
-    
+
     await marketplace.initialize(TREASURY_ADDRESS, PLATFORM_FEE);
     console.log('Marketplace Proxy initialized');
-    
+
     /////////
 
     /////////
     const BundleMarketplace = await ethers.getContractFactory(
         'FantomBundleMarketplace'
-      );
+    );
     const bundleMarketplaceImpl = await BundleMarketplace.deploy();
     await bundleMarketplaceImpl.deployed();
     console.log('FantomBundleMarketplace deployed to:', bundleMarketplaceImpl.address);
-    
+
     const bundleMarketplaceProxy = await AdminUpgradeabilityProxyFactory.deploy(
         bundleMarketplaceImpl.address,
-        PROXY_ADDRESS,
-        []
-      );
+        PROXY_ADDRESS, []
+    );
     await bundleMarketplaceProxy.deployed();
-    console.log('Bundle Marketplace Proxy deployed at ', bundleMarketplaceProxy.address);  
+    console.log('Bundle Marketplace Proxy deployed at ', bundleMarketplaceProxy.address);
     const BUNDLE_MARKETPLACE_PROXY_ADDRESS = bundleMarketplaceProxy.address;
     const bundleMarketplace = await ethers.getContractAt('FantomBundleMarketplace', bundleMarketplaceProxy.address);
-    
+
     await bundleMarketplace.initialize(TREASURY_ADDRESS, PLATFORM_FEE);
     console.log('Bundle Marketplace Proxy initialized');
-    
+
     ////////
 
     ////////
@@ -84,18 +82,17 @@ async function main(network) {
 
     const auctionProxy = await AdminUpgradeabilityProxyFactory.deploy(
         auctionImpl.address,
-        PROXY_ADDRESS,
-        []
-      );
+        PROXY_ADDRESS, []
+    );
 
     await auctionProxy.deployed();
     console.log('Auction Proxy deployed at ', auctionProxy.address);
     const AUCTION_PROXY_ADDRESS = auctionProxy.address;
     const auction = await ethers.getContractAt('FantomAuction', auctionProxy.address);
-    
+
     await auction.initialize(TREASURY_ADDRESS);
     console.log('Auction Proxy initialized');
-   
+
     ////////
 
     ////////
@@ -179,12 +176,12 @@ async function main(network) {
     const PriceFeed = await ethers.getContractFactory('FantomPriceFeed');
     const WRAPPED_FTM = network.name === 'mainnet' ? WRAPPED_FTM_MAINNET : WRAPPED_FTM_TESTNET;
     const priceFeed = await PriceFeed.deploy(
-      FANTOM_ADDRESS_REGISTRY,
-      WRAPPED_FTM
+        FANTOM_ADDRESS_REGISTRY,
+        WRAPPED_FTM
     );
-  
+
     await priceFeed.deployed();
-  
+
     console.log('FantomPriceFeed deployed to', priceFeed.address);
     ////////
 
@@ -224,7 +221,7 @@ async function main(network) {
         '20000000000000000000',
         TREASURY_ADDRESS,
         '10000000000000000000'
-     );
+    );
     await artFactory.deployed();
     console.log('FantomArtFactory deployed to:', artFactory.address);
 
@@ -241,12 +238,12 @@ async function main(network) {
     await artFactoryPrivate.deployed();
     console.log('FantomArtFactoryPrivate deployed to:', artFactoryPrivate.address);
     ////////
-    
-    await marketplace.updateAddressRegistry(FANTOM_ADDRESS_REGISTRY);   
+
+    await marketplace.updateAddressRegistry(FANTOM_ADDRESS_REGISTRY);
     await bundleMarketplace.updateAddressRegistry(FANTOM_ADDRESS_REGISTRY);
-    
+
     await auction.updateAddressRegistry(FANTOM_ADDRESS_REGISTRY);
-    
+
     await addressRegistry.updateArtion(artion.address);
     await addressRegistry.updateAuction(auction.address);
     await addressRegistry.updateMarketplace(marketplace.address);
@@ -254,19 +251,17 @@ async function main(network) {
     await addressRegistry.updateNFTFactory(factory.address);
     await addressRegistry.updateTokenRegistry(tokenRegistry.address);
     await addressRegistry.updatePriceFeed(priceFeed.address);
-    await addressRegistry.updateArtFactory(artFactory.address);   
+    await addressRegistry.updateArtFactory(artFactory.address);
 
     await tokenRegistry.add(WRAPPED_FTM);
 
-  }
-  
-  // We recommend this pattern to be able to use async/await everywhere
-  // and properly handle errors.
-  main(network)
+}
+
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
+main(network)
     .then(() => process.exit(0))
     .catch((error) => {
-      console.error(error);
-      process.exit(1);
+        console.error(error);
+        process.exit(1);
     });
-  
-
